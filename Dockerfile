@@ -1,14 +1,19 @@
-# Etapa 1: compilación
-FROM maven:3.9.11-eclipse-temurin-17 AS build
+FROM eclipse-temurin:17-jdk AS build
 
 WORKDIR /app
 
+COPY .mvn .mvn
+COPY mvnw .
 COPY pom.xml .
-COPY src ./src
 
-RUN mvn clean package -DskipTests
+RUN chmod +x mvnw
+RUN ./mvnw dependency:go-offline -DskipTests
 
-# Etapa 2: ejecución
+COPY src src
+
+RUN ./mvnw clean package -DskipTests
+
+
 FROM eclipse-temurin:17-jre
 
 WORKDIR /app
