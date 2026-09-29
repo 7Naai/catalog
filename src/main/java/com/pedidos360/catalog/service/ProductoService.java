@@ -3,6 +3,7 @@ package com.pedidos360.catalog.service;
 import com.pedidos360.catalog.model.Producto;
 import com.pedidos360.catalog.model.dto.ProductoRequest;
 import com.pedidos360.catalog.model.dto.ProductoResponse;
+import com.pedidos360.catalog.publisher.CatalogPublisher; // 1. Importar el Publisher
 import com.pedidos360.catalog.repository.ProductoRepository;
 
 import org.springframework.stereotype.Service;
@@ -15,9 +16,10 @@ import java.util.List;
 public class ProductoService {
 
     private final ProductoRepository productoRepository;
-
-    public ProductoService(ProductoRepository productoRepository) {
+    private final CatalogPublisher catalogPublisher; 
+    public ProductoService(ProductoRepository productoRepository, CatalogPublisher catalogPublisher) {
         this.productoRepository = productoRepository;
+        this.catalogPublisher = catalogPublisher;
     }
 
     @Transactional(readOnly = true)
@@ -54,6 +56,7 @@ public class ProductoService {
         producto.setStock(request.getStock());
 
         Producto guardado = productoRepository.save(producto);
+        catalogPublisher.publishStockUpdated(guardado.getId(), guardado.getStock());
 
         return new ProductoResponse(guardado);
     }
@@ -68,40 +71,31 @@ public class ProductoService {
         producto.setName(request.getName());
         producto.setPrice(request.getPrice());
         producto.setStock(request.getStock());
-
         Producto actualizado = productoRepository.save(producto);
-
+        catalogPublisher.publishStockUpdated(actualizado.getId(), actualizado.getStock());
         return new ProductoResponse(actualizado);
     }
-
     public void eliminarProducto(String id) {
-
         if (!productoRepository.existsById(id)) {
             throw new RuntimeException(
                     "Producto no encontrado con id: " + id
             );
         }
-
         productoRepository.deleteById(id);
     }
-
     public ProductoResponse actualizarStock(String id, Integer stock) {
-
         if (stock == null || stock < 0) {
             throw new IllegalArgumentException(
                     "El stock no puede ser negativo"
             );
         }
-
         Producto producto = productoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException(
                         "Producto no encontrado con id: " + id
                 ));
-
         producto.setStock(stock);
-
         Producto actualizado = productoRepository.save(producto);
-
+        catalogPublisher.publishStockUpdated(actualizado.getId(), actualizado.getStock());
         return new ProductoResponse(actualizado);
     }
 }
