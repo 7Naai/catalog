@@ -74,7 +74,7 @@ public class CatalogController {
         return ResponseEntity.noContent().build();
     }
 
-    @PatchMapping("/productos/{id}/stock")
+    @PutMapping("/productos/{id}/stock")
     @Operation(summary = "Actualizar stock")
     public ResponseEntity<ProductoResponse> actualizarStock(
             @PathVariable String id,
