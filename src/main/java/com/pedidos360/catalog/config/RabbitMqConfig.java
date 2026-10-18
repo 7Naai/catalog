@@ -21,14 +21,20 @@ public class RabbitMqConfig {
     public static final String DLQ_QUEUE = "catalog.stock.dlq";
     public static final String DLQ_ROUTING_KEY = "catalog.dlk.key";
 
+    // Constante para sincronizar con ms-orders DLX
+    public static final String ORDERS_DLX_EXCHANGE = "orders.dlx.exchange";
+
     @Bean
     public DirectExchange catalogExchange() {
         return new DirectExchange(EXCHANGE_CATALOG);
     }
 
+    // --- COLA CORREGIDA ---
     @Bean
     public Queue stockQueue() {
-        return QueueBuilder.durable(QUEUE_STOCK_UPDATED).build();
+        return QueueBuilder.durable(QUEUE_STOCK_UPDATED)
+                .withArgument("x-dead-letter-exchange", ORDERS_DLX_EXCHANGE)
+                .build();
     }
 
     @Bean
@@ -47,7 +53,7 @@ public class RabbitMqConfig {
 
     @Bean
     public Binding stockCmdBinding(@Qualifier("stockCmdQueue") Queue stockCmdQueue, 
-                                   @Qualifier("catalogExchange") DirectExchange catalogExchange) {
+                                    @Qualifier("catalogExchange") DirectExchange catalogExchange) {
         return BindingBuilder.bind(stockCmdQueue).to(catalogExchange).with(STOCK_CMD_ROUTING_KEY);
     }
 
@@ -63,11 +69,10 @@ public class RabbitMqConfig {
 
     @Bean
     public Binding deadLetterBinding(@Qualifier("deadLetterQueue") Queue deadLetterQueue,
-                                     @Qualifier("deadLetterExchange") DirectExchange deadLetterExchange) {
+                                      @Qualifier("deadLetterExchange") DirectExchange deadLetterExchange) {
         return BindingBuilder.bind(deadLetterQueue).to(deadLetterExchange).with(DLQ_ROUTING_KEY);
     }
 
-    // 5. Convertidor de mensajes JSON
     @Bean
     public MessageConverter jsonMessageConverter() {
         return new Jackson2JsonMessageConverter();
