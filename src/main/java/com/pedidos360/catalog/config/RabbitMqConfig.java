@@ -21,19 +21,19 @@ public class RabbitMqConfig {
     public static final String DLQ_QUEUE = "catalog.stock.dlq";
     public static final String DLQ_ROUTING_KEY = "catalog.dlk.key";
 
-    // Constante para sincronizar con ms-orders DLX
     public static final String ORDERS_DLX_EXCHANGE = "orders.dlx.exchange";
+    public static final String ORDERS_DLK_KEY = "orders.dlk.key"; // <--- AGREGADO
 
     @Bean
     public DirectExchange catalogExchange() {
         return new DirectExchange(EXCHANGE_CATALOG);
     }
 
-    // --- COLA CORREGIDA ---
     @Bean
     public Queue stockQueue() {
         return QueueBuilder.durable(QUEUE_STOCK_UPDATED)
                 .withArgument("x-dead-letter-exchange", ORDERS_DLX_EXCHANGE)
+                .withArgument("x-dead-letter-routing-key", ORDERS_DLK_KEY) // <--- AGREGADO
                 .build();
     }
 
