@@ -1,5 +1,4 @@
 version: '3.8'
-
 services:
   catalog-service:
     build: .
@@ -11,7 +10,8 @@ services:
       - SPRING_RABBITMQ_PORT=5672
       - SPRING_RABBITMQ_USERNAME=guest
       - SPRING_RABBITMQ_PASSWORD=guest
-      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka1:9092,kafka2:9092
+      - JAVA_TOOL_OPTIONS=-Djava.net.preferIPv4Stack=true
     networks:
       - red-compartida
 
